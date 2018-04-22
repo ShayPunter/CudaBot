@@ -14,25 +14,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package co.uk.shaypunter.cudabot.command;
+package co.uk.shaypunter.cudabot.command.commands.fun;
 
-import java.util.HashMap;
-import java.util.Map;
+import co.uk.shaypunter.cudabot.command.DiscordUser;
+import uk.co.drcooke.commandapi.annotations.command.Alias;
+import uk.co.drcooke.commandapi.annotations.command.Command;
+import uk.co.drcooke.commandapi.annotations.command.DefaultHandler;
+import uk.co.drcooke.commandapi.execution.ExitCode;
 
-public class PrefixManager {
+import java.security.SecureRandom;
+import java.util.Random;
 
-    private Map<Long, String> prefixMap;
+@Command("dice")
+@Alias("roll")
+public class DiceCommand {
 
-    public PrefixManager() {
-        this.prefixMap = new HashMap<>();
+    private Random random;
+
+    public DiceCommand(){
+        random = new SecureRandom();
     }
 
-    public void setGuildPrefix(long guild, String prefix){
-        prefixMap.put(guild, prefix);
-    }
-
-    public String getGuildPrefix(long guild){
-        return prefixMap.getOrDefault(guild, "~");
+    @DefaultHandler
+    public ExitCode onCommand(DiscordUser user, int max){
+        user.getChannel().sendMessage(String.valueOf(random.nextInt(max))).submit();
+        return ExitCode.SUCCESS;
     }
 
 }

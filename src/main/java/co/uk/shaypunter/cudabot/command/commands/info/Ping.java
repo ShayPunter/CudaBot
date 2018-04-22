@@ -14,25 +14,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package co.uk.shaypunter.cudabot.command;
+package co.uk.shaypunter.cudabot.command.commands.info;
 
-import java.util.HashMap;
-import java.util.Map;
+import co.uk.shaypunter.cudabot.command.DiscordUser;
+import uk.co.drcooke.commandapi.annotations.command.Alias;
+import uk.co.drcooke.commandapi.annotations.command.Command;
+import uk.co.drcooke.commandapi.annotations.command.DefaultHandler;
+import uk.co.drcooke.commandapi.execution.ExitCode;
 
-public class PrefixManager {
+@Command("ping")
+@Alias({"connection", "pong"})
+public class Ping {
 
-    private Map<Long, String> prefixMap;
-
-    public PrefixManager() {
-        this.prefixMap = new HashMap<>();
-    }
-
-    public void setGuildPrefix(long guild, String prefix){
-        prefixMap.put(guild, prefix);
-    }
-
-    public String getGuildPrefix(long guild){
-        return prefixMap.getOrDefault(guild, "~");
+    @DefaultHandler
+    public ExitCode onCommand(DiscordUser user) {
+        user.getChannel().sendMessage("Pong! " + user.getGuild().getJDA().getPing() + "ms").submit();
+        return ExitCode.SUCCESS;
     }
 
 }
