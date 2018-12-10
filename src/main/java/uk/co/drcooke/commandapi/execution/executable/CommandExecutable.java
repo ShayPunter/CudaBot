@@ -26,7 +26,7 @@ import java.util.List;
 
 public interface CommandExecutable {
 
-    ExitCode execute(ArgumentManifest argumentManifest);
+    ExitCode execute(ArgumentManifest argumentManifest, User user);
 
     String getName();
 

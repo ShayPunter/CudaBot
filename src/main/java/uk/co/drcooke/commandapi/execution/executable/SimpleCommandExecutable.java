@@ -23,20 +23,21 @@ import uk.co.drcooke.commandapi.security.User;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class SimpleCommandExecutable implements CommandExecutable {
 
     private final String name;
     private final List<CommandParameter> commandParameters;
-    private final Function<ArgumentManifest, ExitCode> commandExecutionFunction;
+    private final BiFunction<ArgumentManifest, User, ExitCode> commandExecutionFunction;
     private final String permission;
     private final Annotation[] annotations;
     private String usage = "";
     private String description = "";
 
     public SimpleCommandExecutable(String name, List<CommandParameter> commandParameters,
-                                   Function<ArgumentManifest, ExitCode> commandExecutionFunction,
+                                   BiFunction<ArgumentManifest, User, ExitCode> commandExecutionFunction,
                                    String permission, Annotation[] annotations) {
         this.name = name;
         this.commandParameters = commandParameters;
@@ -46,8 +47,8 @@ public class SimpleCommandExecutable implements CommandExecutable {
     }
 
     @Override
-    public ExitCode execute(ArgumentManifest argumentManifest) {
-        return commandExecutionFunction.apply(argumentManifest);
+    public ExitCode execute(ArgumentManifest argumentManifest, User user) {
+        return commandExecutionFunction.apply(argumentManifest, user);
     }
 
     @Override

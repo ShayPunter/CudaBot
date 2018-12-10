@@ -36,7 +36,7 @@ public class SimpleCommandExecutor implements CommandExecutor {
     @Override
     public ExitCode execute(CommandExecutable executable, Deque<String> arguments, User user) {
         ArgumentManifest manifest = commandArgumentConverterService.getArgumentManifest(executable, arguments);
-        return executable.execute(manifest);
+        return executable.execute(manifest, user);
     }
 
 }

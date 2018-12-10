@@ -14,21 +14,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package co.uk.shaypunter.cudabot.command.commands.info;
+package co.uk.shaypunter.cudabot.commands.moderation;
 
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageHistory;
 import co.uk.shaypunter.cudabot.command.DiscordUser;
 import uk.co.drcooke.commandapi.annotations.command.Alias;
 import uk.co.drcooke.commandapi.annotations.command.Command;
 import uk.co.drcooke.commandapi.annotations.command.DefaultHandler;
+import uk.co.drcooke.commandapi.annotations.security.Permission;
 import uk.co.drcooke.commandapi.execution.ExitCode;
 
-@Command("ping")
-@Alias({"connection", "pong"})
-public class Ping {
+@Command("purgeuser")
+@Alias("clearuser")
+public class PurgeUserCommand {
 
     @DefaultHandler
-    public ExitCode onCommand(DiscordUser user) {
-        user.getChannel().sendMessage("Pong! " + user.getGuild().getJDA().getPing() + "ms").submit();
+    @Permission(permission="MESSAGE_MANAGE")
+    public ExitCode onCommand(DiscordUser user, String name, int amount){
+        MessageHistory history = user.getChannel().getHistory();
+        history.retrievePast(Math.min(100, amount)).queue(msgs -> {
+            int deleted = 0;
+            for(Message msg : msgs){
+                if(msg.getMember().getUser().getName().equals(name)) {
+                    if(deleted < amount) {
+                        msg.delete().submit();
+                        deleted++;
+                    }
+                }
+            }
+            user.getChannel().sendMessage("Deleted " + deleted + " messages. (Can only delete from the 100 most recent messages)").submit();
+        });
         return ExitCode.SUCCESS;
     }
 

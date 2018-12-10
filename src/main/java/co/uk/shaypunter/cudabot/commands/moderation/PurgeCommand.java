@@ -14,30 +14,44 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package co.uk.shaypunter.cudabot.command.commands.fun;
+package co.uk.shaypunter.cudabot.commands.moderation;
 
+import net.dv8tion.jda.core.entities.MessageHistory;
+import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import co.uk.shaypunter.cudabot.command.DiscordUser;
 import uk.co.drcooke.commandapi.annotations.command.Alias;
 import uk.co.drcooke.commandapi.annotations.command.Command;
 import uk.co.drcooke.commandapi.annotations.command.DefaultHandler;
+import uk.co.drcooke.commandapi.annotations.security.Permission;
 import uk.co.drcooke.commandapi.execution.ExitCode;
 
-import java.security.SecureRandom;
-import java.util.Random;
-
-@Command("dice")
-@Alias("roll")
-public class DiceCommand {
-
-    private Random random;
-
-    public DiceCommand(){
-        random = new SecureRandom();
-    }
+@Command("purge")
+@Alias({"clear", "collm"})
+public class PurgeCommand {
 
     @DefaultHandler
-    public ExitCode onCommand(DiscordUser user, int max){
-        user.getChannel().sendMessage(String.valueOf(random.nextInt(max))).submit();
+    @Permission(permission="MESSAGE_MANAGE")
+    public ExitCode onCommand(DiscordUser user, int amount){
+        
+        MessageHistory history = user.getChannel().getHistory();
+        if(amount >= 100){
+            int extra = amount % 100;
+            amount -= extra;
+            ((TextChannel) user.getChannel()).deleteMessages(history.retrievePast(extra).complete())
+                    .submit();
+            for(int i = 0; i < amount / 100; i++){
+                ((TextChannel) user.getChannel()).deleteMessages(history.retrievePast(100).complete())
+                        .submit();
+            }
+        }else {
+            try {
+                ((TextChannel) user.getChannel()).deleteMessages(history.retrievePast(amount).complete())
+                        .submit();
+            } catch (InsufficientPermissionException e) {
+                user.getChannel().sendMessage("Bot doesnt have permissions").submit();
+            }
+        }
         return ExitCode.SUCCESS;
     }
 

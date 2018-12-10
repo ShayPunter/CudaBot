@@ -26,6 +26,7 @@ import uk.co.drcooke.commandapi.execution.executable.CommandExecutable;
 import uk.co.drcooke.commandapi.execution.executor.CommandExecutor;
 import uk.co.drcooke.commandapi.security.User;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Deque;
 
 public class SimpleCommandShell implements CommandShell {
@@ -57,7 +58,10 @@ public class SimpleCommandShell implements CommandShell {
             System.out.println("Command not found");
             return ExitCode.FAILURE;
         }
-        return commandExecutor.execute(commandExecutable, tokens, user);
+        if(commandExecutable.canExecute(user)) {
+            return commandExecutor.execute(commandExecutable, tokens, user);
+        }
+        return ExitCode.NO_PERMISSION;
     }
 
     public CommandNamespaceRegistry getCommandNamespaceRegistry() {

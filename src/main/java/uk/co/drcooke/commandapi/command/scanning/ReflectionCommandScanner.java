@@ -25,12 +25,14 @@ import uk.co.drcooke.commandapi.command.namespace.SimpleCommandNamespace;
 import uk.co.drcooke.commandapi.execution.ExitCode;
 import uk.co.drcooke.commandapi.execution.executable.CommandExecutable;
 import uk.co.drcooke.commandapi.execution.executable.SimpleCommandExecutable;
+import uk.co.drcooke.commandapi.security.User;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ReflectionCommandScanner implements CommandScanner {
@@ -82,16 +84,32 @@ public class ReflectionCommandScanner implements CommandScanner {
             List<CommandParameter> commandParameters = new ArrayList<>();
             for (Parameter parameter : method.getParameters()) {
                 Class<?> type = parameter.getType();
-                Annotation[] annotations = parameter.getAnnotations();
-                commandParameters.add(new SimpleCommandParameter(type, annotations));
+                boolean shouldParse = true;
+                for(Class<?> cinterface : type.getInterfaces()){
+                    if(cinterface == User.class){
+                        shouldParse = false;
+                    }
+                }
+                if(shouldParse) {
+                    Annotation[] annotations = parameter.getAnnotations();
+                    commandParameters.add(new SimpleCommandParameter(type, annotations));
+                }
             }
             String permission = "";
             if (method.isAnnotationPresent(Permission.class)) {
                 permission = method.getAnnotation(Permission.class).permission();
             }
-            CommandExecutable commandExecutable = new SimpleCommandExecutable("", commandParameters, argumentManifest -> {
+            CommandExecutable commandExecutable = new SimpleCommandExecutable("", commandParameters, (argumentManifest, user) -> {
                 try {
-                    return (ExitCode) method.invoke(parent, argumentManifest.getArguments().toArray());
+                    if(argumentManifest.getArguments().size() == 0) {
+                        return (ExitCode) method.invoke(parent, user);
+                    }else{
+                        Object[] args = new Object[argumentManifest.getArguments().size() + 1];
+                        System.arraycopy(argumentManifest.getArguments().toArray(), 0, args, 1,
+                                argumentManifest.getArguments().size());
+                        args[0] = user;
+                        return (ExitCode) method.invoke(parent, args);
+                    }
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
@@ -117,16 +135,33 @@ public class ReflectionCommandScanner implements CommandScanner {
             List<CommandParameter> commandParameters = new ArrayList<>();
             for (Parameter parameter : method.getParameters()) {
                 Class<?> type = parameter.getType();
-                Annotation[] annotations = parameter.getAnnotations();
-                commandParameters.add(new SimpleCommandParameter(type, annotations));
+                boolean shouldParse = true;
+                for(Class<?> cinterface : type.getInterfaces()){
+                    if(cinterface == User.class){
+                        shouldParse = false;
+                    }
+                }
+                if(shouldParse) {
+                    Annotation[] annotations = parameter.getAnnotations();
+                    commandParameters.add(new SimpleCommandParameter(type, annotations));
+                }
             }
             String permission = "";
             if (method.isAnnotationPresent(Permission.class)) {
                 permission = method.getAnnotation(Permission.class).permission();
             }
-            CommandExecutable commandExecutable = new SimpleCommandExecutable(namespaces[namespaces.length - 1], commandParameters, argumentManifest -> {
+            CommandExecutable commandExecutable = new SimpleCommandExecutable(
+                    namespaces[namespaces.length - 1], commandParameters, (argumentManifest, user)-> {
                 try {
-                    return (ExitCode) method.invoke(parent, argumentManifest.getArguments().toArray());
+                    if(argumentManifest.getArguments().size() == 0) {
+                        return (ExitCode) method.invoke(parent, user);
+                    }else{
+                        Object[] args = new Object[argumentManifest.getArguments().size() + 1];
+                        System.arraycopy(argumentManifest.getArguments().toArray(), 0, args, 1,
+                                argumentManifest.getArguments().size());
+                        args[0] = user;
+                        return (ExitCode) method.invoke(parent, args);
+                    }
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
