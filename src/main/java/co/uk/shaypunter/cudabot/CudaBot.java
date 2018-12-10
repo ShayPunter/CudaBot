@@ -10,6 +10,7 @@ import uk.co.drcooke.commandapi.CommandAPI;
 import uk.co.drcooke.commandapi.command.CommandShell;
 
 import javax.security.auth.login.LoginException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,6 +32,16 @@ public class CudaBot {
         commandShell = CommandAPI.createSimpleCommandShell();
 
         JDABuilder builder = new JDABuilder(AccountType.BOT);
+        File file = new File(Paths.get("config").toUri());
+
+        if (!file.exists()) {
+          if (!file.createNewFile()) {
+            System.err.println("Error: Failed to create config file.");
+            System.exit(1);
+            return;
+          }
+        }
+
         String token = Files.readAllLines(Paths.get("config")).get(0);
         ownerID = Files.readAllLines(Paths.get("config")).get(1);
         builder.setToken(token);
